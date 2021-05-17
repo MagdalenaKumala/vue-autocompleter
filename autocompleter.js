@@ -1,98 +1,105 @@
-Vue.component('v-autocompleter',{
-    templete:'<img src="googleser.svg" class="search-icon"> <input @focus="focused" ref="first" v-model="googleSearch" list="listaMiast" type="text" class="search_input" @keyup.down="goDown()" @keyup.up="goUp()" @keyup.enter="clickEnter" /> <img src="googlekey.png" class="keyboard-icon"> <img src="googlemic.png" class="vs-icon"> <div class="cities"> <li v-for="(city,index) in filteredCities" @click="handleClick(city.name)" :class="{HighBack: index == forPick}"> <img class="glass" src="googleser.svg"> <div class="podpowiedzi" v-html="highlight(city.name)"></div> </li>',
-    data: function(){
+Vue.component('v-autocompleter', {
+    template: ' <div class="czesc"><div class="krzyzyk"><img title="Wyczyść" class="ikona_input-clear" src="Obrazki/iks.svg"/><span class="kreska"></span></div><img class="ikona_input-keyboard" src="Obrazki/klawiatura.svg"/><img class="ikona_input-mikrofon" src="Obrazki/mikrofon.png"/><button id="przycisk_szukaj"><img class="ikona_input" src="Obrazki/lupa_2.svg"/></button></div><div  id="wypisz_miasta" class="miasta_lista" :class="{widok : googleSearch.length > 0 /*&& skupienie*/ && filtrowaneMiasta.length>0}" ><ul ><li  v-for="(miasto,index) in filtrowaneMiasta" ><div class="lista_elementow" :class="{klasa_skupienie:index == zaznaczenie}"><img class="ikona_input" src="Obrazki/lupa.svg" /><a href="#" v-html="wytluszcz(miasto)" v-on:click="wybrane(index)"><b>{{ miasto }}</b></a> </div></li></ul></div> ',
+
+    data: function () {
         return {
             googleSearch: '',
-            googleSearch_temp:'',
-            isActive: 0,
+            searchedInput:'',
+            filtrowaneMiasta:"",
             cities: window.cities,
-            focused: true,
-            forPick: -1,
-            updated: true,
+            filtrowane_miasta_aktualizacja:true,
+            skupienie: false,
+            zmiana: false,
+            zaznaczenie: -1,
         }
     },
-    watch: {
-        forPick: function () {
-            this.updated = false;
-            this.googleSearch = this.filteredCities[this.forPick].name
+    watch: 
+        {
+            zaznaczenie: function () 
+            {
+            this.filtrowane_miasta_aktualizacja=false;
+            this.googleSearch=this.filtrowaneMiasta[this.zaznaczenie].name;
             },
-        googleSearch: function(){
-            if(this.googleSearch.length == 0){
-                this.filteredCities='';
-            }
-            else{
-                this.createFilteredList(this.updated);
-                this.updated=true;
-                if(this.forPick == -1){
-                    this.googleSearch_temp = this.googleSearch;
-                    this.createFilteredList(true);
+            googleSearch: function()
+            {
+                this.filtrowane_miasta_utworz(this.filtrowane_miasta_aktualizacja);
+                this.filtrowane_miasta_aktualizacja=true;
+                console.log(this.filtrowaneMiasta);
+                if(this.zaznaczenie==-1)
+                {
+                    this.searchedInput=this.googleSearch;      
                 }
             }
-        }
         },
-    methods: {
-      handleClick: function (name) {
-        this.googleSearch = name;
-        this.isActive();
-      },
-      highlight: function(phrase) {
-        return phrase.replaceAll(this.googleSearch, '<span class="highlight">' + this.googleSearch + '</span>')
-      },
-      createFilteredList(bool){
-          if(bool){
-              let result = this.cities.filter(city => city.name.includes(this.googleSearch));
-              if(result.length>10){
-                  this.filteredCities = result.slice(1,11);
-              }
-              else{
-                  this.filteredCities = result;
-              }
-              this.forPick = -1;
-          }
-      },
-      switchPage(){
-          if(this.isActive==0){
-              this.isActive =1;
-          }
-          else{
-              this.googleSearch = '';
-              this.isActive = 0;
-          }
-
-      },
-      handleClick(name){
-          this.googleSearch = name;
-          this.switchPage();
-      },
-
-      goDown(){
-        if(this.forPick < this.filteredCities.length -1){
-            this.forPick +=1;
+        methods:
+        {
+            enter() 
+            {
+                this.filtrowaneMiasta=true;
+                this.zmiana= true;
+                this.zaznaczenie=-1;
+                this.skupienie = false;
+             },
+            dol()
+            {
+                if(this.zaznaczenie<this.filtrowaneMiasta.length-1)
+                {
+                    this.zaznaczenie+=1; 
+                }
+                else if(this.zaznaczenie==this.filtrowaneMiasta.length-1)
+                {
+                    this.zaznaczenie=0; 
+                }
+             },
+             gora()
+             {
+                if(this.zaznaczenie>0)
+                {
+                    this.zaznaczenie-=1; 
+                }
+                else if(this.zaznaczenie==0)
+                {
+                    this.zaznaczenie=this.filtrowaneMiasta.length-1;
+                }
+             },
+             wybrane(i)
+             {
+                this.googleSearch=this.filtrowaneMiasta[i].name;
+                this.enter();
+             },
+             aktywne()
+             {
+                if(this.googleSearch.length==0){
+                    this.zmiana=false;
+                }
+                return this.zmiana;
+             },
+             filtrowane_miasta_utworz(prawda)
+             {
+                 if(prawda)
+                 {
+                    let result=this.cities.filter(miasto => miasto.name.includes(this.googleSearch));
+                    if(result.length>10)
+                    {
+                        this.filtrowaneMiasta= result.slice(1, 11);
+                    }
+                    else{
+                        this.filtrowaneMiasta= result;
+                    }
+                    this.zaznaczenie=-1;
+                 }   
+             },
+             wytluszcz(miasto)
+            {
+                let re = new RegExp(this.searchedInput,"gi");
+                let bolden="<b>"+miasto.name.replace(re, match=>
+                    {
+                     return "<span class='zwykly'>"+ match+"</span>";
+                    })+"</b>";
+                console.log(bolden);
+                return bolden;
+            }      
         }
-        else if(this.forPick == this.filteredCities.length -1){
-            this.forPick = -1;
-        }
-        },
-      goUp(){
-       if(this.forPick > -1){
-           this.forPick -= 1;
-       }
-       else if(this.forPick == 0){
-           this.forPick = this.filteredCities.length -1;
-       }
-      },
-      clickEnter(){
-          if(this.forPick != -1){
-              this.googleSearch = this.filteredCities[this.forPick].name
-              this.forPick = -1;
-              this.focused = false;
-              this.switchPage();
-          }
-          else{
-              this.switchPage
-          }
-      }
-    },
-
-
-})
+    })
+    margin:0px;
+}
