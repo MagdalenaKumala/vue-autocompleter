@@ -1,7 +1,5 @@
 ## Welcome to vue-autocompleter
 
-Maintaining and previewing the content for your website:
-[editor on GitHub](https://github.com/MagdalenaKumala/vue-autocompleter/edit/gh-pages/index.md)
 ### Markdown
 
 ```markdown
